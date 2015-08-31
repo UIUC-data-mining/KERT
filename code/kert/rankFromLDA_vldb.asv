@@ -1,0 +1,57 @@
+% for VLDB paper
+% do ranking based on lda results pttopic file
+%% input selection
+% input path
+inputpath = '../dblp/k100/';
+% output path
+outputpath = '../dblp/k100/';
+% the name of term dictionary file
+dictfile = [inputpath 'word_index.txt'];
+% the name of the topic model result file
+pttfile = [inputpath 'ptt.txt'];
+% the name of the pattern file
+patternfile = [inputpath 'ngram.'];
+% the name of the output file
+outputfile = [outputpath 'phrase.kert_loosebg'];
+% the maximal length of phrases to mine
+% maxn = 5;
+% the minimal suppport of phrases
+minsup = 10;
+% the broken phrase filtering condition (done externally)
+gamma = 2;
+% the weight for phraseness, while the weight for purity is 1
+wp = 1.0;
+% the final maximal length of phrases you want to output
+maxn = 4;
+% the number of phrases you want to output for each topic
+top = 1000;
+
+% you don't need to change the following
+savefile = [outputpath 'fromlda.mat'];
+idterm = ReadName(dictfile);
+
+%% mining, everything indexed from 1
+% ptt = load(pttfile);
+% StorePTSeq(ptt,savefile);
+[ngramdict,zfreq,np] = LoadAllPhrases(patternfile);
+totalp = max(ptt(:,1));
+save(savefile,'ngramdict','zfreq','np');
+%% ranking
+load(savefile);
+tic;
+k = size(zfreq{1},2);
+gg = RankNgram_loosebg(ngramdict(1:maxn),zfreq,np,wp,gamma,totalp);
+% gg = RankNgram7(ngramdict(1:maxn),zfreq,np,wp,gamma);
+toc;
+% full ranking function
+ngramname = cell(1,k);
+for i=1:k
+    ngramname{i}=GetNgram(ngramdict,gg{i}(1:min(top,size(gg{i}(:,1))),:),...
+        idterm,PT,pt);
+% the following is for outputing the score of each phrase in each topic
+% OutputNgram([root.prefix int2str(i) '.score'],gg{i},ngramdict,root.map);
+end    
+toc;
+% output 
+WriteName(outputfile,ngramname);    
+% OutputPhrase4MI([root.prefix 'kert'],gg,ngramdict,zfreq,root.map);

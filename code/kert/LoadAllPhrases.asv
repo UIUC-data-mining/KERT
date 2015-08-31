@@ -1,0 +1,16 @@
+function [ngramdict,zfreq,np] = LoadAllPhrases(filename)
+% load all frequent phrases from file, and frequency and number of docs in
+% each topic
+np = load([filename '.np']);
+phrases = load([filename '.dict']);
+freq = load([filename '.freq']);
+maxn = size(phrases,2);
+ngramdict = cell(maxn,1);
+zfreq = cell(maxn,1);
+
+for n=maxn:1:-1
+    id = phrases(:,n)>0;
+    ngramdict{n} = phrases(id,1:n);
+    zfreq{n} = freq(id,:);
+    phrase
+end
